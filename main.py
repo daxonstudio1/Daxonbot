@@ -5,7 +5,7 @@ import os
 # ===== CONFIG =====
 GUILD_ID = 1235640804148645928
 VERIFIED_ROLE = "Verified"
-MEMBER_ROLE = "Member"
+MEMBER_ROLE = "Members"
 
 # ===== INTENTS =====
 intents = discord.Intents.all()

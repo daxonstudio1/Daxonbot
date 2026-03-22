@@ -14,14 +14,6 @@ STAFF_ROLE = "Staff team"
 intents = discord.Intents.all()
 bot = commands.Bot(intents=intents)
 
-# ================= READY =================
-@bot.event
-async def on_ready():
-    bot.add_view(VerifyView())
-    bot.add_view(TicketView())
-    bot.add_view(CloseTicket())
-    print(f"✅ Bot online jako {bot.user}")
-
 # ================= WELCOME =================
 @bot.event
 async def on_member_join(member):
@@ -210,6 +202,13 @@ async def unwarn(ctx, user: discord.Member, index: int):
     if user.id in warns and len(warns[user.id]) >= index:
         warns[user.id].pop(index-1)
     await ctx.respond("✅", ephemeral=True)
+
+@bot.event
+async def on_ready():
+    bot.add_view(VerifyView())
+    bot.add_view(TicketView())
+    bot.add_view(CloseTicket())
+    print(f"✅ Bot online jako {bot.user}")
 
 # ================= START =================
 import os

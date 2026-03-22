@@ -43,7 +43,11 @@ class VerifyView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="✅ Verify", style=discord.ButtonStyle.success)
+    @discord.ui.button(
+        label="✅ Verify",
+        style=discord.ButtonStyle.success,
+        custom_id="verify_button"
+    )
     async def verify(self, button, interaction):
         role = discord.utils.get(interaction.guild.roles, name=VERIFIED_ROLE)
 
@@ -68,9 +72,12 @@ class TicketView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="🎟️ Create Ticket", style=discord.ButtonStyle.red)
+    @discord.ui.button(
+        label="🎟️ Create Ticket",
+        style=discord.ButtonStyle.red,
+        custom_id="ticket_create"
+    )
     async def create_ticket(self, button, interaction):
-
         guild = interaction.guild
 
         category = discord.utils.get(guild.categories, name="tickets")
@@ -81,11 +88,11 @@ class TicketView(discord.ui.View):
 
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(view_channel=False),
-            interaction.user: discord.PermissionOverwrite(view_channel=True, send_messages=True)
+            interaction.user: discord.PermissionOverwrite(view_channel=True)
         }
 
         if staff_role:
-            overwrites[staff_role] = discord.PermissionOverwrite(view_channel=True, send_messages=True)
+            overwrites[staff_role] = discord.PermissionOverwrite(view_channel=True)
 
         channel = await guild.create_text_channel(
             name=f"ticket-{interaction.user.name}",
@@ -93,20 +100,27 @@ class TicketView(discord.ui.View):
             overwrites=overwrites
         )
 
-        embed = discord.Embed(
-            title="🎟️ Ticket",
-            description="Support will be with you shortly.",
-            color=discord.Color.red()
+        await channel.send(
+            content=interaction.user.mention,
+            embed=discord.Embed(
+                title="🎟️ Ticket",
+                description="Support will be with you shortly.",
+                color=discord.Color.red()
+            ),
+            view=CloseTicket()
         )
 
-        await channel.send(content=interaction.user.mention, embed=embed, view=CloseTicket())
         await interaction.response.send_message("✅ Ticket created", ephemeral=True)
 
 class CloseTicket(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="🔒 Close", style=discord.ButtonStyle.gray)
+    @discord.ui.button(
+        label="🔒 Close",
+        style=discord.ButtonStyle.gray,
+        custom_id="ticket_close"
+    )
     async def close(self, button, interaction):
         await interaction.channel.delete()
 

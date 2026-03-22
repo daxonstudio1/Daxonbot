@@ -68,49 +68,55 @@ async def setup_verify(ctx):
     await ctx.respond("✅ Done", ephemeral=True)
 
 # ================= TICKETS =================
-class TicketView(discord.ui.View):
-    def __init__(self):
-        super().__init__(timeout=None)
+@discord.ui.button(
+    label="🎟️ Create Ticket",
+    style=discord.ButtonStyle.red,
+    custom_id="create_ticket_button"
+)
+async def create_ticket(self, button, interaction):
 
-    @discord.ui.button(
-        label="🎟️ Create Ticket",
-        style=discord.ButtonStyle.red,
-        custom_id="ticket_create"
+    guild = interaction.guild
+
+    # 🔒 SPRAWDZENIE czy już ma ticket
+    existing = discord.utils.get(
+        guild.text_channels,
+        name=f"ticket-{interaction.user.name}"
     )
-    async def create_ticket(self, button, interaction):
-        guild = interaction.guild
 
-        category = discord.utils.get(guild.categories, name="tickets")
-        if not category:
-            category = await guild.create_category("tickets")
-
-        staff_role = discord.utils.get(guild.roles, name=STAFF_ROLE)
-
-        overwrites = {
-            guild.default_role: discord.PermissionOverwrite(view_channel=False),
-            interaction.user: discord.PermissionOverwrite(view_channel=True)
-        }
-
-        if staff_role:
-            overwrites[staff_role] = discord.PermissionOverwrite(view_channel=True)
-
-        channel = await guild.create_text_channel(
-            name=f"ticket-{interaction.user.name}",
-            category=category,
-            overwrites=overwrites
+    if existing:
+        return await interaction.response.send_message(
+            "❌ You already have a ticket!",
+            ephemeral=True
         )
 
-        await channel.send(
-            content=interaction.user.mention,
-            embed=discord.Embed(
-                title="🎟️ Ticket",
-                description="Support will be with you shortly.",
-                color=discord.Color.red()
-            ),
-            view=CloseTicket()
-        )
+    category = discord.utils.get(guild.categories, name="tickets")
+    if not category:
+        category = await guild.create_category("tickets")
 
-        await interaction.response.send_message("✅ Ticket created", ephemeral=True)
+    staff_role = discord.utils.get(guild.roles, name=STAFF_ROLE)
+
+    overwrites = {
+        guild.default_role: discord.PermissionOverwrite(view_channel=False),
+        interaction.user: discord.PermissionOverwrite(view_channel=True, send_messages=True)
+    }
+
+    if staff_role:
+        overwrites[staff_role] = discord.PermissionOverwrite(view_channel=True, send_messages=True)
+
+    channel = await guild.create_text_channel(
+        name=f"ticket-{interaction.user.name}",
+        category=category,
+        overwrites=overwrites
+    )
+
+    embed = discord.Embed(
+        title="🎟️ Ticket",
+        description="Support will be with you shortly.",
+        color=discord.Color.red()
+    )
+
+    await channel.send(content=interaction.user.mention, embed=embed, view=CloseTicket())
+    await interaction.response.send_message("✅ Ticket created", ephemeral=True)
 
 class CloseTicket(discord.ui.View):
     def __init__(self):

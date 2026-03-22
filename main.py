@@ -132,6 +132,17 @@ class CloseTicket(discord.ui.View):
     async def close(self, button, interaction):
         await interaction.channel.delete()
 
+@bot.slash_command(guild_ids=[GUILD_ID])
+async def setup_tickets(ctx):
+    embed = discord.Embed(
+        title="🎟️ Tickets",
+        description="Click to create ticket",
+        color=discord.Color.red()
+    )
+
+    await ctx.channel.send(embed=embed, view=TicketView())
+    await ctx.respond("✅ Done", ephemeral=True)
+
 # ================= MODERATION =================
 warns = {}
 

@@ -146,6 +146,25 @@ async def ban(ctx, user: discord.Member, reason: str = "No reason"):
         color=discord.Color.red()
     ))
 
+@bot.slash_command(guild_ids=[GUILD_ID], description="Unban user")
+@commands.has_permissions(ban_members=True)
+async def unban(ctx, user_id: int):
+
+    try:
+        user = await bot.fetch_user(user_id)
+        await ctx.guild.unban(user)
+
+        embed = discord.Embed(
+            title="🔓 User Unbanned",
+            description=f"<@{user_id}> has been unbanned",
+            color=discord.Color.red()
+        )
+
+        await ctx.respond(embed=embed)
+
+    except:
+        await ctx.respond("❌ Failed to unban user", ephemeral=True)
+
 @bot.slash_command(guild_ids=[GUILD_ID])
 async def kick(ctx, user: discord.Member):
     await user.kick()

@@ -60,55 +60,65 @@ async def setup_verify(ctx):
     await ctx.respond("✅ Done", ephemeral=True)
 
 # ================= TICKETS =================
-@discord.ui.button(
-    label="🎟️ Create Ticket",
-    style=discord.ButtonStyle.red,
-    custom_id="create_ticket_button"
-)
-async def create_ticket(self, button, interaction):
+class TicketView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
 
-    guild = interaction.guild
-
-    # 🔒 SPRAWDZENIE czy już ma ticket
-    existing = discord.utils.get(
-        guild.text_channels,
-        name=f"ticket-{interaction.user.name}"
+    @discord.ui.button(
+        label="🎟️ Create Ticket",
+        style=discord.ButtonStyle.red,
+        custom_id="create_ticket_button"
     )
+    async def create_ticket(self, button, interaction):
 
-    if existing:
-        return await interaction.response.send_message(
-            "❌ You already have a ticket!",
-            ephemeral=True
+        guild = interaction.guild
+
+        # 🔒 sprawdzenie czy już ma ticket
+        existing = discord.utils.get(
+            guild.text_channels,
+            name=f"ticket-{interaction.user.name}"
         )
 
-    category = discord.utils.get(guild.categories, name="tickets")
-    if not category:
-        category = await guild.create_category("tickets")
+        if existing:
+            return await interaction.response.send_message(
+                "❌ You already have a ticket!",
+                ephemeral=True
+            )
 
-    staff_role = discord.utils.get(guild.roles, name=STAFF_ROLE)
+        category = discord.utils.get(guild.categories, name="tickets")
+        if not category:
+            category = await guild.create_category("tickets")
 
-    overwrites = {
-        guild.default_role: discord.PermissionOverwrite(view_channel=False),
-        interaction.user: discord.PermissionOverwrite(view_channel=True, send_messages=True)
-    }
+        staff_role = discord.utils.get(guild.roles, name=STAFF_ROLE)
 
-    if staff_role:
-        overwrites[staff_role] = discord.PermissionOverwrite(view_channel=True, send_messages=True)
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(view_channel=False),
+            interaction.user: discord.PermissionOverwrite(view_channel=True, send_messages=True)
+        }
 
-    channel = await guild.create_text_channel(
-        name=f"ticket-{interaction.user.name}",
-        category=category,
-        overwrites=overwrites
-    )
+        if staff_role:
+            overwrites[staff_role] = discord.PermissionOverwrite(view_channel=True, send_messages=True)
 
-    embed = discord.Embed(
-        title="🎟️ Ticket",
-        description="Support will be with you shortly.",
-        color=discord.Color.red()
-    )
+        channel = await guild.create_text_channel(
+            name=f"ticket-{interaction.user.name}",
+            category=category,
+            overwrites=overwrites
+        )
 
-    await channel.send(content=interaction.user.mention, embed=embed, view=CloseTicket())
-    await interaction.response.send_message("✅ Ticket created", ephemeral=True)
+        embed = discord.Embed(
+            title="🎟️ Ticket",
+            description="Support will be with you shortly.",
+            color=discord.Color.red()
+        )
+
+        await channel.send(
+            content=interaction.user.mention,
+            embed=embed,
+            view=CloseTicket()
+        )
+
+        await interaction.response.send_message("✅ Ticket created", ephemeral=True)
+
 
 class CloseTicket(discord.ui.View):
     def __init__(self):
@@ -121,16 +131,6 @@ class CloseTicket(discord.ui.View):
     )
     async def close(self, button, interaction):
         await interaction.channel.delete()
-
-@bot.slash_command(guild_ids=[GUILD_ID])
-async def setup_tickets(ctx):
-    embed = discord.Embed(
-        title="🎟️ Tickets",
-        description="Click to create ticket",
-        color=discord.Color.red()
-    )
-    await ctx.channel.send(embed=embed, view=TicketView())
-    await ctx.respond("✅ Done", ephemeral=True)
 
 # ================= MODERATION =================
 warns = {}

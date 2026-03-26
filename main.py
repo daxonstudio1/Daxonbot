@@ -9,7 +9,7 @@ GUILD_ID = 1235640804148645928
 
 VERIFIED_ROLE = "Verified"
 MEMBER_ROLE = "Members"
-STAFF_ROLE = "Staff team"
+STAFF_ROLE = "Staff"
 
 intents = discord.Intents.all()
 bot = commands.Bot(intents=intents)
